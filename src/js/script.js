@@ -1,6 +1,6 @@
 'use strict';
 
-let start = document.querySelector('#start'),
+const start = document.querySelector('#start'),
     btnAdd = document.querySelectorAll('.btn_plus'),
     incomePlus = btnAdd[0],
     expensesPlus = btnAdd[1],
@@ -21,7 +21,8 @@ let start = document.querySelector('#start'),
     additionalExpensesItem = document.querySelector('.additional_expenses-item'),
     targetAmount = document.querySelector('.target-amount'),
     periodSelect = document.querySelector('.period-select'),
-    periodAmount = document.querySelector('.period-amount');
+    periodAmount = document.querySelector('.period-amount'),
+    input = document.querySelectorAll('input');
 
 
 const isNumber = n => !isNaN(parseFloat(n)) && isFinite(n);
@@ -39,7 +40,6 @@ const appData = {
     budgetDay: 0,
     budgetMonth: 0,
     expensesMonth: 0,
-    accumulatedMonth: 0,
     start: () => {
         appData.budget = +salaryAmount.value;
         appData.getExpenses();
@@ -80,6 +80,7 @@ const appData = {
     },
     addIncomeBlock: () => {
         const cloneIncomeitem = incomeItems[0].cloneNode(true);
+        cloneIncomeitem.childNodes.forEach((item) => item.value = '');
         incomeItems[0].parentNode.insertBefore(cloneIncomeitem, incomePlus);
         incomeItems = document.querySelectorAll('.income-items');
 
@@ -123,12 +124,6 @@ const appData = {
     getTargetMonth: () => {
         return appData.period = targetAmount.value / appData.budgetMonth;    
     },
-    // getStatusIncome: () => {
-    //     (appData.budgetDay > 1200) ? alert('У вас высокий уровень дохода') : 
-    //     (appData.budgetDay > 600) ? alert('У вас средний уровень дохода') : 
-    //     (appData.budgetDay < 600) ? alert('К сожалению у вас уровень дохода ниже среднего') : 
-    //     alert('Что то пошло не так');
-    // },
     getInfoDeposit: () => {
         if(appData.deposit){
             do{
@@ -143,8 +138,26 @@ const appData = {
         return appData.budgetMonth * periodSelect.value;
     }
 };
-    
+
+salaryAmount.addEventListener('keyup',(event)=>{
+    event.target.value ? start.disabled = false : start.disabled = true;
+    salaryAmount.value = salaryAmount.value.replace(/[^0-9]/g, "");
+});
+incomeAmount.addEventListener('keyup',(event)=>{
+    incomeAmount.value = incomeAmount.value.replace(/[^0-9]/g, "");
+});
+const exAmount = document.querySelector('.expenses-amount');
+exAmount.addEventListener('keyup',(event)=>{
+    exAmount.value = exAmount.value.replace(/[^0-9]/g, "");
+});
+const incomeTit = document.querySelector('.income-title');
+incomeTit.addEventListener('keyup',(event)=>{
+    incomeTit.value = incomeTit.value.replace(/[^0-9]/g, "");
+});
+
 start.addEventListener('click', appData.start);
+
+
 expensesPlus.addEventListener('click',appData.addExpensesBlock);
 incomePlus.addEventListener('click',appData.addIncomeBlock);
 periodSelect.addEventListener('input', () => periodAmount.textContent = periodSelect.value);
