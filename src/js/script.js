@@ -25,7 +25,6 @@ const start = document.querySelector('#start'),
 let incomeItems = document.querySelectorAll('.income-items'),
     expensesItems = document.querySelectorAll('.expenses-items');
  
-const isNumber = n => !isNaN(parseFloat(n)) && isFinite(n);
 
 const AppData = class {
     constructor() {
@@ -42,14 +41,13 @@ const AppData = class {
         this.budgetMonth = 0;
         this.expensesMonth = 0;
     }
+    isNumber = n => !isNaN(parseFloat(n)) && isFinite(n);
     start = () => {
         this.blocked();
         this.budget = +salaryAmount.value;
-        this.getExpenses();
-        this.getIncome();
+        this.getExpInc();
         this.getExpensesMonth();
-        this.getAddExpenses();
-        this.getAddIncome();
+        this.getAddExpInc(event);
         this.getBudget();
         this.showResult();
     };
@@ -70,62 +68,44 @@ const AppData = class {
         !isNaN(targetMonthValue.value) ? targetMonthValue.value = 'Срок' :  targetMonthValue.value = Math.ceil(this.getTargetMonth()); 
         periodSelect.addEventListener('input',() => incomePeriodValue.value = this.calcPeriod());
     };
-    addExpensesBlock = () => {
-        const cloneExpensesItem = expensesItems[0].cloneNode(true);
-        expensesItems[0].parentNode.insertBefore(cloneExpensesItem, expensesPlus);
-        expensesItems = document.querySelectorAll('.expenses-items');
-    
-        if(expensesItems.length === 3){
-            expensesPlus.style.display = 'none';
-        }
-    };
-    getExpenses = () =>{
-        const _this = this;
-        expensesItems.forEach((item) => {
-            const itemExpenses = item.querySelector('.expenses-title').value,
-                  cashExpenses = item.querySelector('.expenses-amount').value;
-            if(itemExpenses != '' && cashExpenses != '')
-                _this.expenses[itemExpenses] = cashExpenses;
-        });
-    };
-    addIncomeBlock = () => {
-        const cloneIncomeitem = incomeItems[0].cloneNode(true);
-        cloneIncomeitem.childNodes.forEach((item) => item.value = '');
-        incomeItems[0].parentNode.insertBefore(cloneIncomeitem, incomePlus);
-        incomeItems = document.querySelectorAll('.income-items');
-        if(incomeItems.length === 3){
-            incomePlus.style.display = 'none';
-        }
-    };
-    getIncome = () => {
-        const _this = this;
-        incomeItems.forEach((item) => {
-            const itemIncome = item.querySelector('.income-title').value,
-                  cashIncome = item.querySelector('.income-amount').value;
-            if(itemIncome != '' && cashIncome != '')
-                this.income[itemIncome] = cashIncome;
-        });
-    
+    getExpInc = () => {
+        const count = item => {
+            const startStr = item.className.split('-')[0];
+            const itemTitle = item.querySelector(`.${startStr}-title`).value;
+            const itemAmount = item.querySelector(`.${startStr}-amount`).value;
+            if(itemTitle != '' && itemAmount != '')
+                this[startStr][itemTitle] = itemAmount;
+        };
+            
+        incomeItems.forEach(count);
+        expensesItems.forEach(count);
+
         for(let key in this.income){
             this.incomeMonth += +this.income[key];
-            console.log(this.incomeMonth);
+        }   
+    };
+    addExpIncBlock = (event) => {
+        const classes = event.target.className.split(' ')[1].split('_')[0];
+        const button = document.querySelector(`.${classes}_add`);
+
+        let item = document.querySelectorAll(`.${classes}-items`);
+
+        const cloneIncomeitem = item[0].cloneNode(true);
+        cloneIncomeitem.childNodes.forEach((item) => item.value = '');
+        item[0].parentNode.insertBefore(cloneIncomeitem, button);
+        item = document.querySelectorAll(`.${classes}-items`);
+
+        if(item.length === 3){
+            button.style.display = 'none';
         }
-            
     };
-    getAddExpenses = () => {
-        const addExpenses = additionalExpensesItem.value.split(',');
-        addExpenses.forEach((item) => {
-            item = item.trim();
-            if(item != '')
-                this.addExpenses.push(item);
-        });
-    };
-    getAddIncome = () => {
-        additionalIncomeItem.forEach((item) => {
-            const itemValue = item.value.trim();
-            if(itemValue != '')
-                this.addIncome.push(itemValue);
-        });
+    getAddExpInc = () => {
+        const addFunc = (item, variable) => (item instanceof Array ) ? 
+            item.forEach(ev => {if(ev.value != '') variable.push(ev.trim())}) :
+            item.forEach(ev => {if(ev.value != '') variable.push(ev.value.trim())});
+    
+        addFunc(additionalIncomeItem, this.addIncome);
+        addFunc(additionalExpensesItem.value.split(','), this.addExpenses);
     };
     getBudget = () => {
         this.budgetMonth = Math.floor(this.budget + this.incomeMonth - this.expensesMonth);
@@ -141,10 +121,10 @@ const AppData = class {
         if(this.deposit){
             do{
                 this.percentDeposit = prompt('Какой годовой депозит?');
-            }while(!isNumber(this.percentDeposit));
+            }while(!this.isNumber(this.percentDeposit));
             do{
                 this.moneyDeposit = prompt('Какая сумма заложена?');
-            }while(!isNumber(this.moneyDeposit));
+            }while(!this.isNumber(this.moneyDeposit));
         }
     };
     calcPeriod = () => {
@@ -203,8 +183,8 @@ const AppData = class {
         
         start.addEventListener('click', this.start.bind(appData));
         cancel.addEventListener('click', this.reset.bind(appData));
-        expensesPlus.addEventListener('click', this.addExpensesBlock);
-        incomePlus.addEventListener('click', this.addIncomeBlock);
+        expensesPlus.addEventListener('click', this.addExpIncBlock);
+        incomePlus.addEventListener('click', this.addExpIncBlock);
         periodSelect.addEventListener('input', () => periodAmount.textContent = periodSelect.value);
     };
 };  
