@@ -101,8 +101,8 @@ const AppData = class {
     };
     getAddExpInc = () => {
         const addFunc = (item, variable) => (item instanceof Array ) ? 
-            item.forEach(ev => {if(ev.value != '') variable.push(ev.trim())}) :
-            item.forEach(ev => {if(ev.value != '') variable.push(ev.value.trim())});
+            item.forEach(ev => {ev.value != '' && variable.push(ev.trim())}) :
+            item.forEach(ev => {ev.value != '' && variable.push(ev.value.trim())});
     
         addFunc(additionalIncomeItem, this.addIncome);
         addFunc(additionalExpensesItem.value.split(','), this.addExpenses);
@@ -116,16 +116,6 @@ const AppData = class {
     };
     getTargetMonth = () => {
         return this.period = targetAmount.value / this.budgetMonth;    
-    };
-    getInfoDeposit = () => {
-        if(this.deposit){
-            do{
-                this.percentDeposit = prompt('Какой годовой депозит?');
-            }while(!this.isNumber(this.percentDeposit));
-            do{
-                this.moneyDeposit = prompt('Какая сумма заложена?');
-            }while(!this.isNumber(this.moneyDeposit));
-        }
     };
     calcPeriod = () => {
         return this.budgetMonth * periodSelect.value;
@@ -142,15 +132,15 @@ const AppData = class {
         periodSelect.value = 1;
         periodAmount.textContent = 1;
         
-        for(let i = 1; i < incomeItems.length; i++){
-            incomeItems[i].parentNode.removeChild(incomeItems[i]);
-            incomePlus.style.display = 'block';
-        };
-        for(let i = 1; i < expensesItems.length; i++){
-            expensesItems[i].parentNode.removeChild(expensesItems[i]);
-            expensesPlus.style.display = 'block';
-        };
-    
+        incomeItems = document.querySelectorAll('.income-items');
+        expensesItems = document.querySelectorAll('.expenses-items');
+        
+        incomeItems.forEach ((item,i) => i != 1 && item.parentNode.removeChild(item));
+        expensesItems.forEach ((item,i) => i != 1 && item.parentNode.removeChild(item));
+            
+        incomePlus.style.display = 'block';
+        expensesPlus.style.display = 'block';
+
         this.budget = 0;
         this.income = {};
         this.addIncome = [];
