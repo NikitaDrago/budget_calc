@@ -53,6 +53,7 @@ const AppData = class {
         this.getInfoDeposit();
         this.getBudget();
         this.showResult();
+        this.saveData();
     };
     blocked() {
         const blockedItem = document.querySelectorAll('input');
@@ -155,6 +156,8 @@ const AppData = class {
         this.budgetDay = 0;
         this.budgetMonth = 0;
         this.expensesMonth = 0;
+
+        this.clearData();
     };
     getInfoDeposit(){
         if(this.deposit){
@@ -185,10 +188,78 @@ const AppData = class {
             depositBank.value = '';
             depositAmount.value = '';
             this.deposit = false;
-            depositBank.RemoveEventListener('change', this.changePercent);
+            depositBank.removeEventListener('change', this.changePercent);
         }
     };
+    setCookie(name, value, options = {}) {
+
+        options = {
+          path: '/',
+          ...options
+        };
+      
+        if (options.expires instanceof Date) {
+          options.expires = options.expires.toUTCString();
+        }
+      
+        let updatedCookie = encodeURIComponent(name) + "=" + encodeURIComponent(value);
+      Object.keys(options).map((optionKey) => {
+          updatedCookie += "; " + optionKey;
+          let optionValue = options[optionKey];
+          if (optionValue !== true) {
+            updatedCookie += "=" + optionValue;
+          }
+      });
+      
+        document.cookie = updatedCookie;
+    };
+    deleteCookie(name) {
+        this.setCookie(name, "", {
+          'max-age': 'path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;'
+        })
+      }
+    getCookie(name) {
+        let matches = document.cookie.match(new RegExp(
+          "(?:^|; )" + name.replace(/([\.$?*|{}\(\)\[\]\\\/\+^])/g, '\\$1') + "=([^;]*)"
+        ));
+        return matches ? decodeURIComponent(matches[1]) : undefined;
+    };      
+    saveData(){
+        const result = document.querySelectorAll('.result-total');
+        result.forEach((item,i) => {
+            this.setCookie(`result-${i+1}`,`${item.value}`,{'max-age': 50000});
+            localStorage.setItem(`result-${i+1}`, `${item.value}`);
+        });
+
+    };
+    getData(){
+        const result = document.querySelectorAll('.result-total');
+        const keys = Object.keys(localStorage);
+        keys.forEach((item,i) => {
+            result[i].value = localStorage.getItem(item);
+        });
+    };
+    clearData(){    
+        localStorage.clear();
+        const cookieKeys = document.cookie.split(';').map(item => item.split('=')[0].trim());
+        cookieKeys.forEach(delItem => {
+            console.log(delItem);
+            this.deleteCookie(delItem);
+        })
+    }
     eventsListeners = () => {
+        document.addEventListener("DOMContentLoaded", () => {
+            const keys = Object.keys(localStorage);
+            console.log(keys);
+            const cookieKeys = document.cookie.split(';').map(item => item.split('=')[0].trim());
+            keys.forEach(item => {
+                if(!(`${this.getCookie(item)}` === `${localStorage.getItem(item)}`) || !item.indexOf(cookieKeys)){
+                    this.clearData();
+                }
+            });
+            this.getData();
+        });
+
         salaryAmount.addEventListener('keyup',(event) => {
             event.target.value ? start.disabled = false : start.disabled = true;
             salaryAmount.value = salaryAmount.value.replace(/[^0-9]/g, "");
